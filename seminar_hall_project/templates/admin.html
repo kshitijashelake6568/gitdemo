@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Admin — Seminar Hall System</title>
+    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --ink: #0d0d0d;
+            --paper: #f7f5f0;
+            --accent: #e84545;
+            --accent2: #2563eb;
+            --success: #16a34a;
+            --border: #e2ddd6;
+            --card: #ffffff;
+            --muted: #6b6b6b;
+            --shadow: 0 1px 3px rgba(0,0,0,0.08), 0 8px 24px rgba(0,0,0,0.06);
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'DM Sans', sans-serif; background: var(--paper); color: var(--ink); min-height: 100vh; }
+
+        /* TOP BAR */
+        .topbar {
+            position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+            background: var(--ink);
+            padding: 0 32px; height: 56px;
+            display: flex; align-items: center; justify-content: space-between;
+        }
+        .topbar-brand { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 18px; color: #fff; letter-spacing: -0.5px; }
+        .topbar-brand span { color: var(--accent); }
+        .admin-badge { background: var(--accent); color: white; padding: 3px 12px; border-radius: 20px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; }
+
+        /* PAGES */
+        .page { padding: 80px 24px 40px; min-height: 100vh; }
+        .page.centered { display: flex; align-items: center; justify-content: center; padding-top: 0; min-height: 100vh; }
+        .hidden { display: none !important; }
+
+        /* CARD */
+        .card { background: var(--card); border-radius: 20px; box-shadow: var(--shadow); padding: 40px; border: 1px solid var(--border); }
+        .card-title { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 26px; letter-spacing: -1px; margin-bottom: 6px; }
+        .card-subtitle { font-size: 14px; color: var(--muted); margin-bottom: 28px; }
+
+        /* FORM */
+        .field { margin-bottom: 16px; }
+        .field label { display: block; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.8px; color: var(--muted); margin-bottom: 6px; }
+        input, select { width: 100%; padding: 12px 16px; border: 1.5px solid var(--border); border-radius: 10px; font-family: 'DM Sans', sans-serif; font-size: 15px; background: var(--paper); color: var(--ink); outline: none; transition: border-color 0.2s, box-shadow 0.2s; appearance: none; }
+        input:focus, select:focus { border-color: var(--ink); box-shadow: 0 0 0 3px rgba(13,13,13,0.08); }
+        select { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%236b6b6b' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 14px center; padding-right: 36px; cursor: pointer; }
+
+        /* BUTTONS */
+        .btn { display: inline-flex; align-items: center; gap: 6px; padding: 11px 22px; border-radius: 10px; font-family: 'Syne', sans-serif; font-size: 14px; font-weight: 700; cursor: pointer; border: none; transition: all 0.18s; letter-spacing: -0.2px; }
+        .btn-primary { background: var(--ink); color: white; width: 100%; justify-content: center; margin-top: 6px; padding: 14px; font-size: 15px; }
+        .btn-primary:hover { background: #333; transform: translateY(-1px); }
+        .btn-ghost { background: transparent; color: var(--ink); border: 1.5px solid var(--border); }
+        .btn-ghost:hover { background: var(--paper); border-color: var(--ink); }
+        .btn-danger { background: var(--accent); color: white; }
+        .btn-danger:hover { opacity: 0.88; }
+        .btn-blue { background: var(--accent2); color: white; }
+        .btn-blue:hover { opacity: 0.88; }
+        .btn-sm { padding: 8px 16px; font-size: 13px; }
+        .btn-row { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; margin-top: 20px; }
+
+        /* PAGE HEADERS */
+        .page-header { margin-bottom: 28px; }
+        .page-header .eyebrow { font-size: 12px; text-transform: uppercase; letter-spacing: 1px; color: var(--muted); margin-bottom: 4px; }
+        .page-header h2 { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 28px; letter-spacing: -1px; }
+
+        /* CALENDAR */
+        .calendar-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; margin-bottom: 24px; }
+        @media (max-width: 600px) { .calendar-grid { grid-template-columns: repeat(3, 1fr); } }
+        .date-box {
+            background: white; border: 1.5px solid var(--border); border-radius: 14px;
+            padding: 14px 8px; text-align: center; cursor: pointer;
+            transition: all 0.18s;
+        }
+        .date-box:hover { border-color: var(--ink); transform: translateY(-2px); box-shadow: 0 6px 16px rgba(0,0,0,0.1); }
+        .date-box.active { background: var(--ink); color: white; border-color: var(--ink); transform: translateY(-2px); box-shadow: 0 6px 16px rgba(0,0,0,0.18); }
+        .date-box .day-num { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 22px; line-height: 1; }
+        .date-box .day-month { font-size: 11px; margin-top: 2px; opacity: 0.6; font-weight: 500; text-transform: uppercase; letter-spacing: 0.5px; }
+
+        /* HALL SELECT PAGE */
+        .hall-select-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin: 16px 0; }
+        .hall-option {
+            background: var(--paper); border: 1.5px solid var(--border); border-radius: 14px;
+            padding: 18px 12px; text-align: center; cursor: pointer; transition: all 0.18s;
+        }
+        .hall-option:hover { border-color: var(--ink); background: white; transform: translateY(-2px); }
+        .hall-option.selected { background: var(--ink); color: white; border-color: var(--ink); }
+        .hall-option .h-icon { font-size: 22px; margin-bottom: 6px; }
+        .hall-option .h-name { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 13px; }
+
+        /* HISTORY TABLE */
+        .table-wrap { overflow-x: auto; border-radius: 16px; border: 1px solid var(--border); background: white; box-shadow: var(--shadow); }
+        #historyTable { width: 100%; border-collapse: collapse; }
+        #historyTable th { background: var(--ink); color: white; padding: 13px 16px; font-family: 'Syne', sans-serif; font-weight: 700; font-size: 12px; letter-spacing: 0.3px; white-space: nowrap; text-align: left; }
+        #historyTable td { padding: 13px 16px; border-bottom: 1px solid var(--border); font-size: 14px; vertical-align: middle; }
+        #historyTable tbody tr:hover td { background: #fafaf8; }
+        #historyTable tbody tr:last-child td { border-bottom: none; }
+
+        .status-active { display: inline-block; background: #f0fdf4; color: var(--success); border: 1px solid #bbf7d0; border-radius: 20px; padding: 2px 10px; font-size: 12px; font-weight: 600; }
+        .status-cancelled { display: inline-block; background: #fff0f0; color: var(--accent); border: 1px solid #fecaca; border-radius: 20px; padding: 2px 10px; font-size: 12px; font-weight: 600; }
+
+        .check-col input[type="checkbox"] { width: 16px; height: 16px; cursor: pointer; accent-color: var(--accent); }
+
+        .role-pill { display: inline-block; border-radius: 20px; padding: 2px 10px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.4px; }
+        .role-hod { background: #fef3c7; color: #92400e; }
+        .role-teacher { background: #eff6ff; color: #1e40af; }
+        .role-student { background: #f5f3ff; color: #6d28d9; }
+
+        .empty-row td { text-align: center; padding: 48px; color: var(--muted); font-size: 15px; }
+
+        /* SELECTED DATE CHIP */
+        .date-chip { display: inline-flex; align-items: center; gap: 6px; background: var(--ink); color: white; border-radius: 20px; padding: 4px 14px; font-size: 13px; font-weight: 600; margin-left: 10px; }
+
+        /* DIVIDER */
+        .divider { height: 1px; background: var(--border); margin: 24px 0; }
+
+        /* TOAST */
+        #toast { position: fixed; bottom: 24px; right: 24px; z-index: 999; background: var(--ink); color: white; padding: 14px 22px; border-radius: 12px; font-size: 14px; font-weight: 500; box-shadow: 0 8px 24px rgba(0,0,0,0.2); transform: translateY(80px); opacity: 0; transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); max-width: 300px; }
+        #toast.show { transform: translateY(0); opacity: 1; }
+        #toast.success { background: var(--success); }
+        #toast.error { background: var(--accent); }
+    </style>
+</head>
+<body>
+
+<!-- TOP BAR -->
+<div class="topbar">
+    <div class="topbar-brand">SEMINAR<span>.</span>HALL</div>
+    <span class="admin-badge">Admin Panel</span>
+</div>
+
+<!-- TOAST -->
+<div id="toast"></div>
+
+<!-- ════════ LOGIN ════════ -->
+<div class="page centered" id="loginPage">
+    <div class="card" style="width:400px;">
+        <div style="text-align:center;font-size:36px;margin-bottom:12px;">🔐</div>
+        <div class="card-title" style="text-align:center;">Admin Login</div>
+        <div class="card-subtitle" style="text-align:center;">Access restricted to administrators only.</div>
+        <div class="field">
+            <label>Username</label>
+            <input type="text" id="adminUser" placeholder="admin">
+        </div>
+        <div class="field">
+            <label>Password</label>
+            <input type="password" id="adminPass" placeholder="••••••••">
+        </div>
+        <button class="btn btn-primary" onclick="adminLogin()">Sign In →</button>
+    </div>
+</div>
+
+<!-- ════════ CALENDAR PAGE ════════ -->
+<div class="page hidden" id="calendarPage">
+    <div class="page-header">
+        <div class="eyebrow">Step 1 of 2</div>
+        <h2>Select a Date</h2>
+    </div>
+    <div class="calendar-grid" id="calendar"></div>
+    <div class="btn-row" style="justify-content:flex-start;">
+        <button class="btn btn-ghost btn-sm" onclick="goLogin()">← Logout</button>
+        <button class="btn btn-primary btn-sm" style="width:auto;" onclick="nextStep()">Continue →</button>
+    </div>
+</div>
+
+<!-- ════════ HALL PAGE ════════ -->
+<div class="page hidden" id="hallPage">
+    <div class="page-header">
+        <div class="eyebrow">Step 2 of 2 &nbsp;·&nbsp; <span id="selectedDateLabel"></span></div>
+        <h2>Select Seminar Hall</h2>
+    </div>
+    <div class="hall-select-grid">
+        <div class="hall-option" onclick="selectHallTile(this, 'Seminar Hall CSE')">
+            <div class="h-icon">💻</div><div class="h-name">CSE</div>
+        </div>
+        <div class="hall-option" onclick="selectHallTile(this, 'Seminar Hall Civil')">
+            <div class="h-icon">🏗️</div><div class="h-name">Civil</div>
+        </div>
+        <div class="hall-option" onclick="selectHallTile(this, 'Seminar Hall Mechanical')">
+            <div class="h-icon">⚙️</div><div class="h-name">Mechanical</div>
+        </div>
+        <div class="hall-option" onclick="selectHallTile(this, 'Seminar Hall Electronics')">
+            <div class="h-icon">🔌</div><div class="h-name">Electronics</div>
+        </div>
+        <div class="hall-option" onclick="selectHallTile(this, 'Seminar Hall Chemical')">
+            <div class="h-icon">🧪</div><div class="h-name">Chemical</div>
+        </div>
+    </div>
+    <div class="btn-row" style="justify-content:flex-start;">
+        <button class="btn btn-ghost btn-sm" onclick="backCalendar()">← Back</button>
+        <button class="btn btn-blue btn-sm" onclick="showHistory()">Show Event History →</button>
+    </div>
+</div>
+
+<!-- ════════ HISTORY PAGE ════════ -->
+<div class="page hidden" id="historyPage">
+    <div class="page-header" style="display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:12px;">
+        <div>
+            <div class="eyebrow">Event History</div>
+            <h2 id="historyTitle" style="font-size:22px;"></h2>
+        </div>
+        <div class="btn-row" style="margin-top:0;">
+            <button class="btn btn-ghost btn-sm" onclick="backHall()">← Hall</button>
+            <button class="btn btn-ghost btn-sm" onclick="backCalendar()">📅 Calendar</button>
+            <button class="btn btn-danger btn-sm" onclick="deleteSelected()">🗑 Delete Selected</button>
+            <button class="btn btn-ghost btn-sm" onclick="logout()">⎋ Logout</button>
+        </div>
+    </div>
+
+    <div class="table-wrap">
+        <table id="historyTable">
+            <thead>
+                <tr>
+                    <th class="check-col" style="width:40px;"></th>
+                    <th>Username</th>
+                    <th>Day</th>
+                    <th>Date</th>
+                    <th>Time</th>
+                    <th>Event</th>
+                    <th>Department</th>
+                    <th>Role</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody id="historyBody"></tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+let selectedDate = "";
+let selectedHallValue = "";
+
+function showToast(msg, type = "") {
+    const t = document.getElementById("toast");
+    t.textContent = msg;
+    t.className = "show " + type;
+    setTimeout(() => { t.className = ""; }, 3000);
+}
+
+function adminLogin() {
+    let user = document.getElementById("adminUser").value;
+    let pass = document.getElementById("adminPass").value;
+    if (user === "admin" && pass === "admin123") {
+        document.getElementById("loginPage").classList.add("hidden");
+        document.getElementById("calendarPage").classList.remove("hidden");
+        generateCalendar();
+    } else {
+        showToast("Invalid credentials.", "error");
+    }
+}
+
+function generateCalendar() {
+    let cal = document.getElementById("calendar");
+    cal.innerHTML = "";
+    let today = new Date();
+    for (let i = 0; i < 30; i++) {
+        let d = new Date(); d.setDate(today.getDate() + i);
+        let dateText = d.toLocaleDateString("en-IN", { day: "numeric", month: "short" });
+        let dayName = d.toLocaleDateString("en-IN", { weekday: "short" });
+        let box = document.createElement("div");
+        box.className = "date-box";
+        box.innerHTML = `<div class="day-num">${d.getDate()}</div><div class="day-month">${d.toLocaleDateString("en-IN",{month:"short"})}</div><div style="font-size:10px;opacity:0.5;margin-top:2px">${dayName}</div>`;
+        box.onclick = function () {
+            document.querySelectorAll(".date-box").forEach(x => x.classList.remove("active"));
+            box.classList.add("active");
+            selectedDate = dateText;
+        };
+        cal.appendChild(box);
+    }
+}
+
+function nextStep() {
+    if (!selectedDate) { showToast("Please select a date.", "error"); return; }
+    document.getElementById("calendarPage").classList.add("hidden");
+    document.getElementById("hallPage").classList.remove("hidden");
+    document.getElementById("selectedDateLabel").textContent = selectedDate;
+}
+
+function selectHallTile(el, val) {
+    document.querySelectorAll(".hall-option").forEach(x => x.classList.remove("selected"));
+    el.classList.add("selected");
+    selectedHallValue = val;
+}
+
+async function fetchBookings({ hall, date, username } = {}) {
+    let url = "/api/bookings";
+    const params = [];
+    if (hall) params.push("hall=" + encodeURIComponent(hall));
+    if (date) params.push("date=" + encodeURIComponent(date));
+    if (params.length) url += "?" + params.join("&");
+    if (username) url = "/api/bookings/user/" + encodeURIComponent(username);
+
+    const res = await fetch(url);
+    if (!res.ok) throw new Error("Unable to load bookings from the server.");
+    return await res.json();
+}
+
+async function showHistory() {
+    if (!selectedHallValue) { showToast("Please select a hall.", "error"); return; }
+    document.getElementById("hallPage").classList.add("hidden");
+    document.getElementById("historyPage").classList.remove("hidden");
+    document.getElementById("historyTitle").innerHTML = selectedHallValue + ' <span class="date-chip">📅 ' + selectedDate + '</span>';
+
+    let bookings = [];
+    try {
+        bookings = await fetchBookings({ hall: selectedHallValue, date: selectedDate });
+    } catch (err) {
+        showToast(err.message, "error");
+    }
+
+    let tbody = document.getElementById("historyBody");
+    tbody.innerHTML = "";
+
+    if (!bookings.length) {
+        tbody.innerHTML = '<tr class="empty-row"><td colspan="9">📭 No bookings found for this date and hall.</td></tr>';
+        return;
+    }
+
+    bookings.forEach(b => {
+        let row = tbody.insertRow();
+
+        // checkbox
+        let chkTd = row.insertCell(); chkTd.className = "check-col";
+        chkTd.innerHTML = `<input type="checkbox" class="deleteCheck" value="${b.id}">`;
+
+        row.insertCell().textContent = b.username;
+        row.insertCell().textContent = b.day;
+        row.insertCell().textContent = b.date;
+        row.insertCell().textContent = b.time;
+        row.insertCell().textContent = b.event;
+        row.insertCell().textContent = b.dept;
+
+        let roleTd = row.insertCell();
+        let roleClass = b.role === "HOD" ? "role-hod" : b.role === "Teacher" ? "role-teacher" : "role-student";
+        roleTd.innerHTML = `<span class="role-pill ${roleClass}">${b.role}</span>`;
+
+        let statusTd = row.insertCell();
+        statusTd.innerHTML = b.status === "Cancelled"
+            ? `<span class="status-cancelled">Cancelled</span>`
+            : `<span class="status-active">Active</span>`;
+    });
+}
+
+async function deleteSelected() {
+    let checks = document.querySelectorAll(".deleteCheck:checked");
+    if (checks.length === 0) { showToast("Select at least one booking.", "error"); return; }
+    if (!confirm("Delete " + checks.length + " selected booking(s)?")) return;
+
+    const ids = [...checks].map(c => parseInt(c.value));
+    try {
+        const response = await fetch("/api/bookings", {
+            method: "DELETE",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ ids })
+        });
+        const data = await response.json();
+        if (!response.ok) {
+            showToast(data.error || "Delete failed.", "error");
+            return;
+        }
+
+        showToast(checks.length + " booking(s) deleted.", "success");
+        await showHistory();
+    } catch (err) {
+        showToast(err.message, "error");
+    }
+}
+
+function backHall() {
+    document.getElementById("historyPage").classList.add("hidden");
+    document.getElementById("hallPage").classList.remove("hidden");
+}
+function backCalendar() {
+    document.getElementById("hallPage").classList.add("hidden");
+    document.getElementById("historyPage").classList.add("hidden");
+    document.getElementById("calendarPage").classList.remove("hidden");
+}
+function goLogin() {
+    document.getElementById("calendarPage").classList.add("hidden");
+    document.getElementById("loginPage").classList.remove("hidden");
+}
+function logout() {
+    if (confirm("Log out?")) location.reload();
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,832 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Seminar Hall Booking System</title>
+    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --ink: #0d0d0d;
+            --paper: #f7f5f0;
+            --accent: #e84545;
+            --accent2: #2563eb;
+            --success: #16a34a;
+            --override: #d97706;
+            --border: #e2ddd6;
+            --card: #ffffff;
+            --muted: #6b6b6b;
+            --shadow: 0 1px 3px rgba(0,0,0,0.08), 0 8px 24px rgba(0,0,0,0.06);
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'DM Sans', sans-serif;
+            background: var(--paper);
+            color: var(--ink);
+            min-height: 100vh;
+        }
+
+        /* ── TOP BAR ── */
+        .topbar {
+            position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+            background: var(--ink);
+            padding: 0 32px;
+            height: 56px;
+            display: flex; align-items: center; justify-content: space-between;
+        }
+        .topbar-brand {
+            font-family: 'Syne', sans-serif;
+            font-weight: 800;
+            font-size: 18px;
+            color: #fff;
+            letter-spacing: -0.5px;
+        }
+        .topbar-brand span { color: var(--accent); }
+        .topbar-user {
+            font-size: 13px;
+            color: rgba(255,255,255,0.6);
+            display: flex; align-items: center; gap: 10px;
+        }
+        .role-badge {
+            background: var(--accent);
+            color: white;
+            padding: 2px 10px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* ── PAGE WRAPPER ── */
+        .page {
+            padding-top: 80px;
+            min-height: 100vh;
+            display: flex; align-items: center; justify-content: center;
+        }
+        .page.top-align { align-items: flex-start; }
+        .hidden { display: none !important; }
+
+        /* ── CARD ── */
+        .card {
+            background: var(--card);
+            border-radius: 20px;
+            box-shadow: var(--shadow);
+            padding: 40px;
+            width: 420px;
+            border: 1px solid var(--border);
+        }
+
+        .card-title {
+            font-family: 'Syne', sans-serif;
+            font-weight: 800;
+            font-size: 26px;
+            letter-spacing: -1px;
+            margin-bottom: 6px;
+        }
+        .card-subtitle {
+            font-size: 14px;
+            color: var(--muted);
+            margin-bottom: 28px;
+        }
+
+        /* ── FORM ELEMENTS ── */
+        .field { margin-bottom: 16px; }
+        .field label {
+            display: block;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            color: var(--muted);
+            margin-bottom: 6px;
+        }
+        input, select {
+            width: 100%;
+            padding: 12px 16px;
+            border: 1.5px solid var(--border);
+            border-radius: 10px;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 15px;
+            background: var(--paper);
+            color: var(--ink);
+            outline: none;
+            transition: border-color 0.2s, box-shadow 0.2s;
+            appearance: none;
+        }
+        input:focus, select:focus {
+            border-color: var(--ink);
+            box-shadow: 0 0 0 3px rgba(13,13,13,0.08);
+        }
+        select {
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%236b6b6b' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 14px center;
+            padding-right: 36px;
+            cursor: pointer;
+        }
+
+        /* ── BUTTONS ── */
+        .btn {
+            display: inline-flex; align-items: center; gap: 6px;
+            padding: 11px 22px;
+            border-radius: 10px;
+            font-family: 'Syne', sans-serif;
+            font-size: 14px;
+            font-weight: 700;
+            cursor: pointer;
+            border: none;
+            transition: all 0.18s;
+            letter-spacing: -0.2px;
+        }
+        .btn-primary {
+            background: var(--ink);
+            color: white;
+            width: 100%;
+            justify-content: center;
+            margin-top: 6px;
+            padding: 14px;
+            font-size: 15px;
+        }
+        .btn-primary:hover { background: #333; transform: translateY(-1px); }
+
+        .btn-ghost {
+            background: transparent;
+            color: var(--ink);
+            border: 1.5px solid var(--border);
+        }
+        .btn-ghost:hover { background: var(--paper); border-color: var(--ink); }
+
+        .btn-danger {
+            background: var(--accent);
+            color: white;
+        }
+        .btn-danger:hover { opacity: 0.88; }
+
+        .btn-sm { padding: 8px 16px; font-size: 13px; }
+
+        .btn-row {
+            display: flex; gap: 10px; flex-wrap: wrap;
+            justify-content: center; margin-top: 16px;
+        }
+
+        /* ── BOOKING PAGE ── */
+        #bookingPage .page-inner {
+            width: 520px;
+        }
+        .section-label {
+            font-family: 'Syne', sans-serif;
+            font-weight: 700;
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 1.2px;
+            color: var(--muted);
+            margin-bottom: 16px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        /* ── HALL GRID ── */
+        .hall-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-top: 10px;
+        }
+        .hall-tile {
+            background: var(--paper);
+            border: 1.5px solid var(--border);
+            border-radius: 12px;
+            padding: 14px 10px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.18s;
+            font-family: 'Syne', sans-serif;
+            font-weight: 700;
+            font-size: 13px;
+        }
+        .hall-tile:hover {
+            border-color: var(--ink);
+            background: var(--ink);
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.12);
+        }
+        .hall-tile .hall-icon { font-size: 20px; margin-bottom: 4px; }
+
+        /* ── SLOT PAGE ── */
+        #slotPage {
+            padding: 72px 24px 40px;
+        }
+        .slot-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 28px;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+        .slot-hall-name {
+            font-family: 'Syne', sans-serif;
+            font-weight: 800;
+            font-size: 24px;
+            letter-spacing: -0.8px;
+        }
+
+        /* ── SLOT TABLE ── */
+        .table-wrap {
+            overflow-x: auto;
+            border-radius: 16px;
+            border: 1px solid var(--border);
+            background: white;
+            box-shadow: var(--shadow);
+        }
+        #slotTable {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        #slotTable th {
+            background: var(--ink);
+            color: white;
+            padding: 14px 20px;
+            font-family: 'Syne', sans-serif;
+            font-weight: 700;
+            font-size: 13px;
+            letter-spacing: -0.2px;
+            text-align: center;
+            white-space: nowrap;
+        }
+        #slotTable th:first-child { border-radius: 0; }
+
+        .time-col {
+            background: linear-gradient(135deg, #0d0d0d, #2d2d2d) !important;
+            color: white !important;
+            font-family: 'Syne', sans-serif !important;
+            font-weight: 700 !important;
+            font-size: 13px !important;
+            padding: 20px 24px !important;
+            min-width: 170px;
+            white-space: nowrap;
+        }
+        #slotTable td {
+            padding: 14px 10px;
+            text-align: center;
+            border: 1px solid #f0ede8;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 13px;
+            font-weight: 500;
+            vertical-align: middle;
+            min-width: 110px;
+            transition: background 0.15s;
+        }
+        #slotTable tbody tr:hover td { background: #fafaf8; }
+
+        /* slot states */
+        .slot-available {
+            cursor: pointer;
+            color: var(--success);
+        }
+        .slot-available:hover {
+            background: #f0fdf4 !important;
+        }
+        .slot-available .dot { 
+            display: inline-block; width: 8px; height: 8px;
+            background: var(--success); border-radius: 50%; margin-right: 4px;
+        }
+        td.booked {
+            background: #fff0f0 !important;
+            color: #b91c1c;
+            cursor: not-allowed;
+        }
+        td.override {
+            background: #fffbeb !important;
+            color: var(--override);
+            cursor: pointer;
+        }
+        td.override:hover { background: #fef3c7 !important; }
+
+        /* ── WEEK NAV ── */
+        .week-nav {
+            display: flex; align-items: center; gap: 10px;
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 6px 10px;
+        }
+        .week-nav span {
+            font-family: 'Syne', sans-serif;
+            font-weight: 700;
+            font-size: 14px;
+            min-width: 80px;
+            text-align: center;
+        }
+        .week-btn {
+            width: 32px; height: 32px;
+            border: 1.5px solid var(--border);
+            border-radius: 8px;
+            background: white;
+            cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 16px;
+            transition: all 0.15s;
+        }
+        .week-btn:hover { background: var(--ink); color: white; border-color: var(--ink); }
+
+        /* ── MY BOOKINGS ── */
+        #myBookingPage {
+            padding: 72px 24px 40px;
+        }
+        .bookings-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 16px;
+            margin-top: 24px;
+        }
+        .booking-card {
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 20px;
+            box-shadow: var(--shadow);
+        }
+        .booking-card-hall {
+            font-family: 'Syne', sans-serif;
+            font-weight: 800;
+            font-size: 15px;
+            margin-bottom: 4px;
+        }
+        .booking-card-event {
+            color: var(--accent2);
+            font-weight: 500;
+            font-size: 14px;
+            margin-bottom: 12px;
+        }
+        .booking-meta {
+            display: flex; flex-wrap: wrap; gap: 8px;
+            margin-bottom: 12px;
+        }
+        .meta-pill {
+            background: var(--paper);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 3px 10px;
+            font-size: 12px;
+            color: var(--muted);
+        }
+        .status-active {
+            background: #f0fdf4;
+            color: var(--success);
+            border-color: #bbf7d0;
+            font-weight: 600;
+        }
+        .status-cancelled {
+            background: #fff0f0;
+            color: var(--accent);
+            border-color: #fecaca;
+            font-weight: 600;
+        }
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--muted);
+        }
+        .empty-state .empty-icon { font-size: 48px; margin-bottom: 12px; }
+        .empty-state p { font-size: 15px; }
+
+        /* ── TOAST ── */
+        #toast {
+            position: fixed; bottom: 24px; right: 24px; z-index: 999;
+            background: var(--ink); color: white;
+            padding: 14px 22px;
+            border-radius: 12px;
+            font-size: 14px;
+            font-weight: 500;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+            transform: translateY(80px); opacity: 0;
+            transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+            max-width: 300px;
+        }
+        #toast.show { transform: translateY(0); opacity: 1; }
+        #toast.success { background: var(--success); }
+        #toast.error { background: var(--accent); }
+
+        /* ── DIVIDER ── */
+        .divider { height: 1px; background: var(--border); margin: 24px 0; }
+
+        @media (max-width: 600px) {
+            .card { width: 95vw; padding: 28px 20px; }
+            .hall-grid { grid-template-columns: repeat(2, 1fr); }
+            #bookingPage .page-inner { width: 95vw; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- TOP BAR -->
+<div class="topbar" id="topbar">
+    <div class="topbar-brand">SEMINAR HALL BOOKING SYSTEM<span>.</span></div>
+    <div class="topbar-user" id="topbarUser" style="display:none">
+        <span id="topbarName"></span>
+        <span class="role-badge" id="topbarRole"></span>
+    </div>
+</div>
+
+<!-- TOAST -->
+<div id="toast"></div>
+
+<!-- ════════ LOGIN PAGE ════════ -->
+ <div class="page-header" id="Seminar Hall Booking System">
+    <div class="card">
+        <div class="Seminar Hall Booking System"></div>
+    </div>
+ </div>
+ 
+<div class="page" id="welcomePage">
+    <div class="card">
+        <div class="card-title">Welcome back 👋</div>
+        <div class="card-subtitle">Sign in to book seminar halls at your institution.</div>
+
+        <div class="field">
+            <label>Login As</label>
+            <select id="loginRole">
+                <option>Student</option>
+                <option>Teacher</option>
+                <option>HOD</option>
+            </select>
+        </div>
+        <div class="field">
+            <label>Username</label>
+            <input type="text" id="username" placeholder="Enter your username">
+        </div>
+        <div class="field">
+            <label>Password</label>
+            <input type="password" id="password" placeholder="Enter your password">
+        </div>
+
+        <button class="btn btn-primary" onclick="login()">Sign In →</button>
+    </div>
+</div>
+
+<!-- ════════ BOOKING PAGE ════════ -->
+<div class="page top-align hidden" id="bookingPage" style="padding-top:88px; padding-bottom:40px;">
+    <div class="page-inner card" style="width:500px;">
+
+        <div class="card-title">New Booking</div>
+        <div class="card-subtitle">Fill in the details and select a hall to proceed.</div>
+
+        <div class="field">
+            <label>Event Name</label>
+            <input type="text" id="eventName" placeholder="e.g. Tech Symposium 2026">
+        </div>
+        <div class="field">
+            <label>Department</label>
+            <select id="dept">
+                <option value="CSE">CSE</option>
+                <option value="Civil">Civil</option>
+                <option value="Mechanical">Mechanical</option>
+                <option value="Electronics">Electronics</option>
+                <option value="Chemical">Chemical</option>
+            </select>
+        </div>
+
+        <div class="divider"></div>
+        <div class="section-label">Choose a Seminar Hall</div>
+
+        <div class="hall-grid">
+            <div class="hall-tile" onclick="selectHall('Seminar Hall CSE')">
+                <div class="hall-icon">💻</div>CSE
+            </div>
+            <div class="hall-tile" onclick="selectHall('Seminar Hall Civil')">
+                <div class="hall-icon">🏗️</div>Civil
+            </div>
+            <div class="hall-tile" onclick="selectHall('Seminar Hall Mechanical')">
+                <div class="hall-icon">⚙️</div>Mechanical
+            </div>
+            <div class="hall-tile" onclick="selectHall('Seminar Hall Electronics')">
+                <div class="hall-icon">🔌</div>Electronics
+            </div>
+            <div class="hall-tile" onclick="selectHall('Seminar Hall Chemical')">
+                <div class="hall-icon">🧪</div>Chemical
+            </div>
+        </div>
+
+        <div class="divider"></div>
+        <div style="text-align:center;">
+            <button class="btn btn-ghost btn-sm" onclick="viewMyBookings()">📋 View My Bookings</button>
+            <button class="btn btn-ghost btn-sm" onclick="logoutUser()" style="margin-left:8px;">⎋ Logout</button>
+        </div>
+    </div>
+</div>
+
+<!-- ════════ SLOT PAGE ════════ -->
+<div id="slotPage" class="hidden">
+    <div class="slot-header">
+        <div>
+            <div style="font-size:12px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:4px;">Viewing availability for</div>
+            <div class="slot-hall-name" id="selectedHallTitle"></div>
+        </div>
+        <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+            <div class="week-nav">
+                <button class="week-btn" onclick="prevWeek()">‹</button>
+                <span id="weekLabel">Week 1</span>
+                <button class="week-btn" onclick="nextWeek()">›</button>
+            </div>
+            <button class="btn btn-ghost btn-sm" onclick="goBack()">← Back</button>
+            <button class="btn btn-danger btn-sm" onclick="resetMyBooking()">↩ Reset</button>
+            <button class="btn btn-ghost btn-sm" onclick="logoutUser()">⎋ Logout</button>
+        </div>
+    </div>
+
+    <!-- LEGEND -->
+    <div style="display:flex;gap:16px;margin-bottom:16px;flex-wrap:wrap;">
+        <div style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--muted);">
+            <div style="width:12px;height:12px;background:#f0fdf4;border:1.5px solid #bbf7d0;border-radius:3px;"></div> Available
+        </div>
+        <div style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--muted);">
+            <div style="width:12px;height:12px;background:#fff0f0;border:1.5px solid #fecaca;border-radius:3px;"></div> Booked
+        </div>
+        <div style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--muted);">
+            <div style="width:12px;height:12px;background:#fffbeb;border:1.5px solid #fde68a;border-radius:3px;"></div> Override Available
+        </div>
+    </div>
+
+    <div class="table-wrap">
+        <table id="slotTable"></table>
+    </div>
+</div>
+
+<!-- ════════ MY BOOKINGS PAGE ════════ -->
+<div id="myBookingPage" class="hidden">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;flex-wrap:wrap;gap:10px;">
+        <div>
+            <div style="font-size:12px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:4px;">Logged in as <strong id="myBookingsUser"></strong></div>
+            <div style="font-family:'Syne',sans-serif;font-weight:800;font-size:24px;letter-spacing:-0.8px;">My Bookings</div>
+        </div>
+        <button class="btn btn-ghost btn-sm" onclick="backToBooking()">← Back</button>
+    </div>
+    <div class="bookings-grid" id="bookingsGrid"></div>
+</div>
+
+<script>
+let currentUser = "";
+let userRole = "";
+let currentWeek = 0;
+let hasBookedThisSession = false;
+
+/* ── TOAST ── */
+function showToast(msg, type = "") {
+    const t = document.getElementById("toast");
+    t.textContent = msg;
+    t.className = "show " + type;
+    setTimeout(() => { t.className = ""; }, 3200);
+}
+
+function getPriority(role) {
+    if (role === "HOD") return 3;
+    if (role === "Teacher") return 2;
+    return 1;
+}
+
+function login() {
+    currentUser = document.getElementById("username").value.trim();
+    let pass = document.getElementById("password").value;
+    userRole = document.getElementById("loginRole").value;
+    if (!currentUser || !pass) { showToast("Please enter credentials", "error"); return; }
+    hasBookedThisSession = false;
+    document.getElementById("topbarName").textContent = currentUser;
+    document.getElementById("topbarRole").textContent = userRole;
+    document.getElementById("topbarUser").style.display = "flex";
+    document.getElementById("welcomePage").classList.add("hidden");
+    document.getElementById("bookingPage").classList.remove("hidden");
+    showToast("Welcome, " + currentUser + "!", "success");
+}
+
+function logoutUser() {
+    if (confirm("Log out?")) {
+        currentUser = ""; userRole = ""; hasBookedThisSession = false;
+        document.getElementById("topbarUser").style.display = "none";
+        ["slotPage","bookingPage","myBookingPage"].forEach(id => document.getElementById(id).classList.add("hidden"));
+        document.getElementById("welcomePage").classList.remove("hidden");
+        document.getElementById("username").value = "";
+        document.getElementById("password").value = "";
+    }
+}
+
+function selectHall(hall) {
+    document.getElementById("bookingPage").classList.add("hidden");
+    document.getElementById("slotPage").classList.remove("hidden");
+    document.getElementById("selectedHallTitle").textContent = hall;
+    currentWeek = 0;
+    updateWeekLabel();
+    generateSlots(hall);
+}
+
+function updateWeekLabel() {
+    document.getElementById("weekLabel").textContent = "Week " + (currentWeek + 1);
+}
+
+function getWeekDates(weekOffset) {
+    let dates = [];
+    let today = new Date(); today.setHours(0,0,0,0);
+    today.setDate(today.getDate() + 1);
+    for (let i = 0; i < 7; i++) {
+        let d = new Date(today);
+        d.setDate(today.getDate() + (weekOffset * 7) + i);
+        d.setHours(0,0,0,0);
+        dates.push({
+            day: d.toLocaleDateString("en-IN", { weekday: "short" }),
+            date: d.toLocaleDateString("en-IN", { day: "numeric", month: "short" })
+        });
+    }
+    return dates;
+}
+
+function isConflict(s1, s2) {
+    if (s1 === s2) return true;
+    if (s1 === "9:00 AM - 5:00 PM" || s2 === "9:00 AM - 5:00 PM") return true;
+    return false;
+}
+
+async function fetchBookings({ hall, date, username } = {}) {
+    let url = "/api/bookings";
+    const params = [];
+    if (hall) params.push("hall=" + encodeURIComponent(hall));
+    if (date) params.push("date=" + encodeURIComponent(date));
+    if (params.length) url += "?" + params.join("&");
+    if (username) url = "/api/bookings/user/" + encodeURIComponent(username);
+
+    const res = await fetch(url);
+    if (!res.ok) throw new Error("Unable to load bookings from the server.");
+    return await res.json();
+}
+
+async function generateSlots(hall) {
+    let table = document.getElementById("slotTable");
+    table.innerHTML = "";
+    let dates = getWeekDates(currentWeek);
+    let slots = ["9:00 AM - 12:00 PM", "1:00 PM - 5:00 PM", "9:00 AM - 5:00 PM"];
+    let bookings = [];
+
+    try {
+        bookings = await fetchBookings({ hall });
+    } catch (err) {
+        showToast(err.message, "error");
+    }
+
+    // Header
+    let header = table.insertRow();
+    let th0 = document.createElement("th"); th0.textContent = "Time Slot"; header.appendChild(th0);
+    dates.forEach(item => {
+        let h = document.createElement("th");
+        h.innerHTML = item.day + "<br><small style='font-weight:400;opacity:.7'>" + item.date + "</small>";
+        header.appendChild(h);
+    });
+
+    slots.forEach(slot => {
+        let row = table.insertRow();
+        let tc = document.createElement("td");
+        tc.className = "time-col";
+        tc.innerHTML = "<div style='font-size:12px;opacity:.6;margin-bottom:2px'>" + (slot.includes("5:00") && slot.includes("9:00") ? "FULL DAY" : slot.includes("12") ? "MORNING" : "AFTERNOON") + "</div>" + slot;
+        row.appendChild(tc);
+
+        dates.forEach(item => {
+            let cell = document.createElement("td");
+            let sameSlot = bookings.filter(b => b.hall === hall && b.day === item.day && b.date === item.date && b.status !== "Cancelled" && b.time === slot);
+            let fullDay = bookings.filter(b => b.hall === hall && b.day === item.day && b.date === item.date && b.status !== "Cancelled" && b.time === "9:00 AM - 5:00 PM");
+            let morning = bookings.filter(b => b.hall === hall && b.day === item.day && b.date === item.date && b.status !== "Cancelled" && b.time === "9:00 AM - 12:00 PM");
+            let afternoon = bookings.filter(b => b.hall === hall && b.day === item.day && b.date === item.date && b.status !== "Cancelled" && b.time === "1:00 PM - 5:00 PM");
+
+            function canOverrideAll(list) {
+                return list.every(b => getPriority(userRole) > getPriority(b.role));
+            }
+
+            let setBooked = (label) => { cell.innerHTML = "<strong>🔒</strong><br><small>" + label + "</small>"; cell.classList.add("booked"); };
+            let setOverride = () => { cell.innerHTML = "<strong>⚡ Override</strong>"; cell.classList.add("override"); cell.onclick = () => bookSlot(hall, item.day, slot, item.date); };
+            let setAvailable = () => { cell.innerHTML = "<span class='dot'></span>Free"; cell.classList.add("slot-available"); cell.onclick = () => bookSlot(hall, item.day, slot, item.date); };
+
+            if (slot !== "9:00 AM - 5:00 PM") {
+                if (fullDay.length > 0) { canOverrideAll(fullDay) ? setOverride() : setBooked("Full Day"); }
+                else if (sameSlot.length > 0) { canOverrideAll(sameSlot) ? setOverride() : setBooked("Taken"); }
+                else setAvailable();
+            } else {
+                let conflicts = [...morning, ...afternoon, ...fullDay];
+                if (conflicts.length === 0) setAvailable();
+                else if (canOverrideAll(conflicts)) setOverride();
+                else setBooked(morning.length && afternoon.length ? "Both Slots" : morning.length ? "Morning Taken" : afternoon.length ? "Afternoon Taken" : "Full Day");
+            }
+
+            row.appendChild(cell);
+        });
+    });
+}
+
+async function bookSlot(hall, day, slot, selectedDate) {
+    if (hasBookedThisSession) { showToast("Only 1 booking per login session.", "error"); return; }
+    let eventName = document.getElementById("eventName").value.trim();
+    if (!eventName) { showToast("Please enter an event name first.", "error"); return; }
+    if (!confirm("Confirm booking for " + slot + " on " + day + ", " + selectedDate + "?")) return;
+
+    try {
+        const response = await fetch("/api/bookings", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                username: currentUser,
+                hall,
+                day,
+                date: selectedDate,
+                time: slot,
+                event: eventName,
+                dept: document.getElementById("dept").value,
+                role: userRole
+            })
+        });
+
+        const data = await response.json();
+        if (!response.ok) {
+            showToast(data.error || "Booking failed.", "error");
+            return;
+        }
+
+        hasBookedThisSession = true;
+        showToast("Booking confirmed! ✓", "success");
+        await generateSlots(hall);
+    } catch (err) {
+        showToast(err.message, "error");
+    }
+}
+
+async function resetMyBooking() {
+    let hall = document.getElementById("selectedHallTitle").textContent;
+    if (!confirm("Cancel all your bookings for " + hall + "?")) return;
+
+    try {
+        const response = await fetch(`/api/bookings/user/${encodeURIComponent(currentUser)}/hall/${encodeURIComponent(hall)}`, {
+            method: "DELETE"
+        });
+        const data = await response.json();
+        if (!response.ok) {
+            showToast(data.error || "Reset failed.", "error");
+            return;
+        }
+
+        hasBookedThisSession = false;
+        showToast("Booking removed.", "success");
+        await generateSlots(hall);
+    } catch (err) {
+        showToast(err.message, "error");
+    }
+}
+
+function nextWeek() {
+    if (currentWeek >= 3) { showToast("Max 1 month ahead.", "error"); return; }
+    currentWeek++;
+    updateWeekLabel();
+    generateSlots(document.getElementById("selectedHallTitle").textContent);
+}
+function prevWeek() {
+    if (currentWeek > 0) { currentWeek--; updateWeekLabel(); generateSlots(document.getElementById("selectedHallTitle").textContent); }
+}
+function goBack() {
+    document.getElementById("slotPage").classList.add("hidden");
+    document.getElementById("bookingPage").classList.remove("hidden");
+}
+
+async function viewMyBookings() {
+    document.getElementById("bookingPage").classList.add("hidden");
+    document.getElementById("myBookingPage").classList.remove("hidden");
+    document.getElementById("myBookingsUser").textContent = currentUser;
+
+    let bookings = [];
+    try {
+        bookings = await fetchBookings({ username: currentUser });
+    } catch (err) {
+        showToast(err.message, "error");
+    }
+
+    let mine = bookings.filter(b => b.username === currentUser);
+    let grid = document.getElementById("bookingsGrid");
+    if (mine.length === 0) {
+        grid.innerHTML = '<div class="empty-state"><div class="empty-icon">📭</div><p>No bookings yet. Head back to book a hall!</p></div>';
+        return;
+    }
+    grid.innerHTML = mine.map(b => `
+        <div class="booking-card">
+            <div class="booking-card-hall">${b.hall}</div>
+            <div class="booking-card-event">📌 ${b.event}</div>
+            <div class="booking-meta">
+                <span class="meta-pill">📅 ${b.day}, ${b.date}</span>
+                <span class="meta-pill">⏰ ${b.time}</span>
+                <span class="meta-pill">🏛 ${b.dept}</span>
+                <span class="meta-pill ${b.status==='Cancelled'?'status-cancelled':'status-active'}">${b.status==='Cancelled'?'❌ '+b.message:'✓ Active'}</span>
+            </div>
+        </div>`).join("");
+}
+
+function backToBooking() {
+    document.getElementById("myBookingPage").classList.add("hidden");
+    document.getElementById("bookingPage").classList.remove("hidden");
+}
+</script>
+</body>
+</html>
